@@ -19,5 +19,5 @@ abstract class AppDatabase : RoomDatabase() {
 @Suppress("NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 expect object AppDatabaseCtor : RoomDatabaseConstructor<AppDatabase>
 
-fun RoomDatabase.Builder<AppDatabase>.build(): AppDatabase =
+fun RoomDatabase.Builder<AppDatabase>.buildDatabase(): AppDatabase =
     fallbackToDestructiveMigrationOnDowngrade(true).build()
