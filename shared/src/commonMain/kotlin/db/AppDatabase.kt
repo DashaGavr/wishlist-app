@@ -17,7 +17,9 @@ abstract class AppDatabase : RoomDatabase() {
 
 // Room KSP generates the actual implementations for each platform.
 @Suppress("NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-expect object AppDatabaseCtor : RoomDatabaseConstructor<AppDatabase>
+expect object AppDatabaseCtor : RoomDatabaseConstructor<AppDatabase> {
+    override fun initialize(): AppDatabase
+}
 
 fun RoomDatabase.Builder<AppDatabase>.buildDatabase(): AppDatabase =
     fallbackToDestructiveMigrationOnDowngrade(true).build()
