@@ -5,39 +5,44 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import kotlinx.serialization.Serializable
 import org.example.project.screens.WishDetailScreen
 import org.example.project.screens.WishlistDetailScreen
 import org.example.project.screens.WishlistScreen
+
+@Serializable object Wishlists
+@Serializable data class WishlistDetail(val listId: Long)
+@Serializable data class WishDetail(val listId: Long, val wishId: Long)
 
 @Composable
 fun App() {
     MaterialTheme {
         val navController = rememberNavController()
 
-        NavHost(navController = navController, startDestination = "wishlists") {
+        NavHost(navController = navController, startDestination = Wishlists) {
 
-            composable("wishlists") {
+            composable<Wishlists> {
                 WishlistScreen(
-                    onOpen = { listId -> navController.navigate("wishlist/$listId") }
+                    onOpen = { listId -> navController.navigate(WishlistDetail(listId)) }
                 )
             }
 
-            composable("wishlist/{listId}") { back ->
-                val listId = back.arguments?.getString("listId")?.toLongOrNull() ?: return@composable
+            composable<WishlistDetail> { back ->
+                val route = back.toRoute<WishlistDetail>()
                 WishlistDetailScreen(
-                    listId = listId,
+                    listId = route.listId,
                     onBack = { navController.popBackStack() },
-                    onWish = { wishId -> navController.navigate("wish/$listId/$wishId") },
-                    onAddWish = { navController.navigate("wish/$listId/0") }
+                    onWish = { wishId -> navController.navigate(WishDetail(route.listId, wishId)) },
+                    onAddWish = { navController.navigate(WishDetail(route.listId, 0L)) }
                 )
             }
 
-            composable("wish/{listId}/{wishId}") { back ->
-                val listId = back.arguments?.getString("listId")?.toLongOrNull() ?: return@composable
-                val wishId = back.arguments?.getString("wishId")?.toLongOrNull() ?: return@composable
+            composable<WishDetail> { back ->
+                val route = back.toRoute<WishDetail>()
                 WishDetailScreen(
-                    listId = listId,
-                    wishId = wishId,
+                    listId = route.listId,
+                    wishId = route.wishId,
                     onBack = { navController.popBackStack() }
                 )
             }

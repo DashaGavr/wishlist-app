@@ -2,21 +2,29 @@
 
 package org.example.project.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import domain.Wish
+import org.example.project.rememberShareText
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import presentation.WishlistDetailViewModel
@@ -31,6 +39,7 @@ fun WishlistDetailScreen(
 ) {
     val wishlist by vm.wishlist.collectAsStateWithLifecycle()
     val wishes by vm.wishes.collectAsStateWithLifecycle()
+    val shareText = rememberShareText()
 
     Scaffold(
         topBar = {
@@ -41,6 +50,17 @@ fun WishlistDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            val text = buildShareText(wishlist?.name, wishlist?.emoji, wishes)
+                            shareText(text)
+                        },
+                        enabled = wishes.isNotEmpty()
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Поделиться")
                     }
                 }
             )
@@ -90,6 +110,20 @@ private fun WishCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Thumbnail
+            if (!wish.imageUri.isNullOrBlank()) {
+                AsyncImage(
+                    model = wish.imageUri,
+                    contentDescription = wish.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+                Spacer(Modifier.width(12.dp))
+            }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(wish.title, style = MaterialTheme.typography.titleMedium)
                 wish.description?.takeIf { it.isNotBlank() }?.let { desc ->
@@ -115,4 +149,16 @@ private fun WishCard(
             }
         }
     }
+}
+
+private fun buildShareText(name: String?, emoji: String?, wishes: List<Wish>): String {
+    val header = "${emoji ?: ""} ${name ?: "Вишлист"}".trim()
+    val items = wishes.joinToString("\n\n") { wish ->
+        buildString {
+            append("• ${wish.title}")
+            wish.description?.takeIf { it.isNotBlank() }?.let { append("\n  $it") }
+            wish.link?.takeIf { it.isNotBlank() }?.let { append("\n  🔗 $it") }
+        }
+    }
+    return "$header\n\n$items"
 }

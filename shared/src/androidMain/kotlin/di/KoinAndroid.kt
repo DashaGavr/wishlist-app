@@ -5,13 +5,15 @@ import db.buildDatabase
 import db.getDatabaseBuilder
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.core.module.Module
 
-fun initKoin(ctx: Context) {
+fun initKoin(ctx: Context, vararg extraModules: Module) {
     startKoin {
         androidContext(ctx)
         modules(
             androidDatabaseModule(ctx),
-            appModule
+            appModule,
+            *extraModules
         )
     }
 }
