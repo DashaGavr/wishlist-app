@@ -104,6 +104,7 @@ private fun WishCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
