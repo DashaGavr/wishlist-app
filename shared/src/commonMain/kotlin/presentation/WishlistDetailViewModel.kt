@@ -2,12 +2,13 @@ package presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import data.WishlistRepository
 import data.WishRepository
+import data.WishlistRepository
 import domain.Wish
 import domain.Wishlist
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -22,12 +23,15 @@ class WishlistDetailViewModel(
         .map { lists -> lists.find { it.id == listId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val wishes: StateFlow<List<Wish>> = wishRepository.getByList(listId)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val wishes: StateFlow<UiState<List<Wish>>> = wishRepository.getByList(listId)
+        .map<List<Wish>, UiState<List<Wish>>> { UiState.Success(it) }
+        .catch { emit(UiState.Error(it.message ?: "Unknown error")) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState.Loading)
 
     fun addWish(title: String) {
         viewModelScope.launch {
-            val nextRank = (wishes.value.maxOfOrNull { it.rank } ?: 0.0) + 1.0
+            val currentWishes = (wishes.value as? UiState.Success)?.data ?: emptyList()
+            val nextRank = (currentWishes.maxOfOrNull { it.rank } ?: 0.0) + 1.0
             wishRepository.insert(
                 Wish(
                     id = 0,
