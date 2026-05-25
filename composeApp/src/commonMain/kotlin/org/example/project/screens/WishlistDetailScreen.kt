@@ -27,6 +27,7 @@ import domain.Wish
 import org.example.project.rememberShareText
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import presentation.UiState
 import presentation.WishlistDetailViewModel
 
 @Composable
@@ -38,8 +39,10 @@ fun WishlistDetailScreen(
     vm: WishlistDetailViewModel = koinViewModel(parameters = { parametersOf(listId) })
 ) {
     val wishlist by vm.wishlist.collectAsStateWithLifecycle()
-    val wishes by vm.wishes.collectAsStateWithLifecycle()
+    val wishesState by vm.wishes.collectAsStateWithLifecycle()
     val shareText = rememberShareText()
+
+    val wishes = (wishesState as? UiState.Success)?.data ?: emptyList()
 
     Scaffold(
         topBar = {
@@ -49,7 +52,7 @@ fun WishlistDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -60,36 +63,54 @@ fun WishlistDetailScreen(
                         },
                         enabled = wishes.isNotEmpty()
                     ) {
-                        Icon(Icons.Default.Share, contentDescription = "Поделиться")
+                        Icon(Icons.Default.Share, contentDescription = "Share")
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddWish) {
-                Icon(Icons.Default.Add, contentDescription = "Добавить желание")
+                Icon(Icons.Default.Add, contentDescription = "Add wish")
             }
         }
     ) { padding ->
-        if (wishes.isEmpty()) {
-            Box(
+        when (val s = wishesState) {
+            is UiState.Loading -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Список пуст. Добавь первое желание!", style = MaterialTheme.typography.bodyLarge)
+                CircularProgressIndicator()
             }
-        } else {
-            LazyColumn(
+
+            is UiState.Error -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentAlignment = Alignment.Center
             ) {
-                items(wishes, key = { it.id }) { wish ->
-                    WishCard(
-                        wish = wish,
-                        onClick = { onWish(wish.id) },
-                        onDelete = { vm.deleteWish(wish) }
-                    )
+                Text("Error: ${s.message}", color = MaterialTheme.colorScheme.error)
+            }
+
+            is UiState.Success -> {
+                if (s.data.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No wishes yet. Add your first!", style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(s.data, key = { it.id }) { wish ->
+                            WishCard(
+                                wish = wish,
+                                onClick = { onWish(wish.id) },
+                                onDelete = { vm.deleteWish(wish) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -111,7 +132,6 @@ private fun WishCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Thumbnail
             if (!wish.imageUri.isNullOrBlank()) {
                 AsyncImage(
                     model = wish.imageUri,
@@ -139,21 +159,21 @@ private fun WishCard(
                 if (!wish.link.isNullOrBlank()) {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "🔗 Ссылка",
+                        "🔗 Link",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                Icon(Icons.Default.Delete, contentDescription = "Delete")
             }
         }
     }
 }
 
 private fun buildShareText(name: String?, emoji: String?, wishes: List<Wish>): String {
-    val header = "${emoji ?: ""} ${name ?: "Вишлист"}".trim()
+    val header = "${emoji ?: ""} ${name ?: "Wishlist"}".trim()
     val items = wishes.joinToString("\n\n") { wish ->
         buildString {
             append("• ${wish.title}")
