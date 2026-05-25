@@ -35,9 +35,9 @@ private data class BottomNavItem(
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Wishlists, "❤️", "Желания"),
-    BottomNavItem(Friends,   "👥", "Друзья"),
-    BottomNavItem(AiChat,    "🤖", "ИИ"),
+    BottomNavItem(Wishlists, "❤️", "Wishes"),
+    BottomNavItem(Friends,   "👥", "Friends"),
+    BottomNavItem(AiChat,    "🤖", "AI Chat"),
 )
 
 @Composable
