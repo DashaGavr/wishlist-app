@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import domain.Wishlist
 import org.koin.compose.viewmodel.koinViewModel
+import presentation.UiState
 import presentation.WishlistViewModel
 
 @Composable
@@ -25,38 +26,56 @@ fun WishlistScreen(
     onOpen: (listId: Long) -> Unit,
     vm: WishlistViewModel = koinViewModel()
 ) {
-    val lists by vm.wishlists.collectAsStateWithLifecycle()
+    val state by vm.wishlists.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Мои вишлисты") })
+            TopAppBar(title = { Text("My Wishlists") })
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Создать вишлист")
+                Icon(Icons.Default.Add, contentDescription = "Create wishlist")
             }
         }
     ) { padding ->
-        if (lists.isEmpty()) {
-            Box(
+        when (val s = state) {
+            is UiState.Loading -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Нет вишлистов. Создай первый!", style = MaterialTheme.typography.bodyLarge)
+                CircularProgressIndicator()
             }
-        } else {
-            LazyColumn(
+
+            is UiState.Error -> Box(
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentAlignment = Alignment.Center
             ) {
-                items(lists, key = { it.id }) { wishlist ->
-                    WishlistCard(
-                        wishlist = wishlist,
-                        onClick = { onOpen(wishlist.id) },
-                        onDelete = { vm.delete(wishlist) }
-                    )
+                Text("Error: ${s.message}", color = MaterialTheme.colorScheme.error)
+            }
+
+            is UiState.Success -> {
+                if (s.data.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No wishlists yet. Create your first one!", style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(s.data, key = { it.id }) { wishlist ->
+                            WishlistCard(
+                                wishlist = wishlist,
+                                onClick = { onOpen(wishlist.id) },
+                                onDelete = { vm.delete(wishlist) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -96,7 +115,7 @@ private fun WishlistCard(
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                Icon(Icons.Default.Delete, contentDescription = "Delete")
             }
         }
     }
@@ -112,20 +131,20 @@ private fun CreateWishlistDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Новый вишлист") },
+        title = { Text("New Wishlist") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = emoji,
                     onValueChange = { emoji = it },
-                    label = { Text("Эмодзи") },
+                    label = { Text("Emoji") },
                     singleLine = true,
                     modifier = Modifier.width(100.dp)
                 )
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Название") },
+                    label = { Text("Name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -135,10 +154,10 @@ private fun CreateWishlistDialog(
             TextButton(
                 onClick = { if (name.isNotBlank()) onCreate(name.trim(), emoji) },
                 enabled = name.isNotBlank()
-            ) { Text("Создать") }
+            ) { Text("Create") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Отмена") }
+            TextButton(onClick = onDismiss) { Text("Cancel") }
         }
     )
 }
