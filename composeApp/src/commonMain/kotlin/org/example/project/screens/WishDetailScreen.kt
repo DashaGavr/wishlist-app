@@ -40,7 +40,7 @@ fun WishDetailScreen(
     var link by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf("") }
 
-    LaunchedEffect(uiState) {
+    LaunchedEffect(wishId) {
         if (uiState is UiState.Success) {
             existing?.let {
                 title = it.title
