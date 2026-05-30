@@ -23,10 +23,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import androidx.lifecycle.viewmodel.compose.viewModel
 import domain.Wish
 import org.example.project.rememberShareText
-import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
+import org.koin.compose.getKoin
 import presentation.UiState
 import presentation.WishlistDetailViewModel
 
@@ -36,8 +36,11 @@ fun WishlistDetailScreen(
     onBack: () -> Unit,
     onWish: (wishId: Long) -> Unit,
     onAddWish: () -> Unit,
-    vm: WishlistDetailViewModel = koinViewModel(parameters = { parametersOf(listId) })
 ) {
+    val koin = getKoin()
+    val vm: WishlistDetailViewModel = viewModel(key = "wishlist_detail_$listId") {
+        WishlistDetailViewModel(koin.get(), koin.get(), listId)
+    }
     val wishlist by vm.wishlist.collectAsStateWithLifecycle()
     val wishesState by vm.wishes.collectAsStateWithLifecycle()
     val shareText = rememberShareText()
