@@ -33,6 +33,9 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.koin.core)
+            implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.multiplatform.settings)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
