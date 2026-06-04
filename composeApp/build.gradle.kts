@@ -55,6 +55,8 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.client.mock)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.test)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
