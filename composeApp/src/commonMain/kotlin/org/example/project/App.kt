@@ -47,11 +47,7 @@ fun App() {
         val backStack by navController.currentBackStackEntryAsState()
 
         val showBottomBar = backStack?.destination?.route?.let { route ->
-            listOf(
-                Wishlists::class.qualifiedName,
-                Friends::class.qualifiedName,
-                AiChat::class.qualifiedName
-            ).any { route.startsWith(it ?: "") }
+            bottomNavItems.any { route.startsWith(it.route::class.qualifiedName ?: "") }
         } ?: true
 
         Scaffold(

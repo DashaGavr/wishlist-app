@@ -16,9 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import domain.Wishlist
-import org.koin.compose.getKoin
+import org.koin.compose.viewmodel.koinViewModel
 import presentation.UiState
 import presentation.WishlistViewModel
 
@@ -26,8 +25,7 @@ import presentation.WishlistViewModel
 fun WishlistScreen(
     onOpen: (listId: Long) -> Unit,
 ) {
-    val koin = getKoin()
-    val vm: WishlistViewModel = viewModel { WishlistViewModel(koin.get()) }
+    val vm: WishlistViewModel = koinViewModel()
     val state by vm.wishlists.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
 

@@ -19,9 +19,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import androidx.lifecycle.viewmodel.compose.viewModel
 import domain.Wish
-import org.koin.compose.getKoin
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import presentation.UiState
 import presentation.WishDetailViewModel
 
@@ -31,9 +31,8 @@ fun WishDetailScreen(
     wishId: Long,
     onBack: () -> Unit,
 ) {
-    val koin = getKoin()
-    val vm: WishDetailViewModel = viewModel(key = "wish_detail_$wishId") {
-        WishDetailViewModel(koin.get(), wishId)
+    val vm: WishDetailViewModel = koinViewModel(key = "wish_detail_$wishId") {
+        parametersOf(wishId)
     }
     val uiState by vm.wish.collectAsStateWithLifecycle()
     val existing = (uiState as? UiState.Success)?.data

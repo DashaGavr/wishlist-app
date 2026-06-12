@@ -8,7 +8,6 @@ import domain.Wish
 import domain.Wishlist
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,10 +22,8 @@ class WishlistDetailViewModel(
         .map { lists -> lists.find { it.id == listId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    val wishes: StateFlow<UiState<List<Wish>>> = wishRepository.getByList(listId)
-        .map<List<Wish>, UiState<List<Wish>>> { UiState.Success(it) }
-        .catch { emit(UiState.Error(it.message ?: "Unknown error")) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UiState.Loading)
+    val wishes: StateFlow<UiState<List<Wish>>> =
+        wishRepository.getByList(listId).asUiState(viewModelScope)
 
     fun addWish(title: String) {
         viewModelScope.launch {
