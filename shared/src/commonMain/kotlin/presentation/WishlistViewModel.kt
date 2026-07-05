@@ -9,8 +9,7 @@ import kotlinx.coroutines.launch
 
 class WishlistViewModel(
     private val repository: WishlistRepository
-
-) : ViewModel() {
+): ViewModel() {
 
     val wishlists: StateFlow<UiState<List<Wishlist>>> =
         repository.getAll().asUiState(viewModelScope)
