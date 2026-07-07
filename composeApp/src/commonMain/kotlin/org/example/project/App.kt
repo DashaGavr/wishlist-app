@@ -17,6 +17,7 @@ import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.example.project.screens.AiChatScreen
 import org.example.project.screens.FriendsScreen
+import org.example.project.screens.SettingsScreen
 import org.example.project.screens.WishDetailScreen
 import org.example.project.screens.WishlistDetailScreen
 import org.example.project.screens.WishlistScreen
@@ -25,6 +26,7 @@ import org.example.project.ui.AppTheme
 @Serializable object Wishlists
 @Serializable object Friends
 @Serializable object AiChat
+@Serializable object Settings
 @Serializable data class WishlistDetail(val listId: Long)
 @Serializable data class WishDetail(val listId: Long, val wishId: Long)
 
@@ -93,7 +95,13 @@ fun App() {
                 }
 
                 composable<AiChat> {
-                    AiChatScreen()
+                    AiChatScreen(
+                        onSettings = { navController.navigate(Settings) }
+                    )
+                }
+
+                composable<Settings> {
+                    SettingsScreen(onBack = { navController.popBackStack() })
                 }
 
                 composable<WishlistDetail> { back ->
