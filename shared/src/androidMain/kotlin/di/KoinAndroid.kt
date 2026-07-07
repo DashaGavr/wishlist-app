@@ -1,6 +1,8 @@
 package di
 
 import android.content.Context
+import com.russhwolf.settings.SharedPreferencesSettings
+import com.russhwolf.settings.Settings
 import db.buildDatabase
 import db.getDatabaseBuilder
 import org.koin.android.ext.koin.androidContext
@@ -11,13 +13,16 @@ fun initKoin(ctx: Context, vararg extraModules: Module) {
     startKoin {
         androidContext(ctx)
         modules(
-            androidDatabaseModule(ctx),
+            androidPlatformModule(ctx),
             appModule,
             *extraModules
         )
     }
 }
 
-private fun androidDatabaseModule(ctx: Context) = org.koin.dsl.module {
+private fun androidPlatformModule(ctx: Context) = org.koin.dsl.module {
     single { getDatabaseBuilder(ctx).buildDatabase() }
+    single<Settings> {
+        SharedPreferencesSettings(ctx.getSharedPreferences("app_settings", Context.MODE_PRIVATE))
+    }
 }
